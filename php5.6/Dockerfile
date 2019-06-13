@@ -28,7 +28,6 @@ RUN yum install -y --enablerepo=remi --enablerepo=remi-php56 \
 	unzip \ 
 	cronie \
 	crontabs &&\
-    mkdir /run/php-fpm/ &&\
     yum clean all
 
 RUN curl -sSL https://getcomposer.org/installer | php &&\

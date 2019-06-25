@@ -27,7 +27,10 @@ RUN yum install -y --enablerepo=remi --enablerepo=remi-php72 \
 	make \
 	unzip \
 	cronie \
-	crontabs &&\
+	crontabs \
+	centos-release-scl \
+	devtoolset-7 &&\
+    scl enable devtoolset-7 bash &&\
     mkdir /run/php-fpm/ &&\
     yum clean all
 

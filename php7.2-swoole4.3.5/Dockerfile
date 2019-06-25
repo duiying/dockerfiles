@@ -25,7 +25,7 @@ RUN yum install -y --enablerepo=remi --enablerepo=remi-php72 \
 	gcc \
 	gcc-c++ \
 	make \
-	unzip \ 
+	unzip \
 	cronie \
 	crontabs &&\
     mkdir /run/php-fpm/ &&\
@@ -38,7 +38,7 @@ RUN curl -sSL https://getcomposer.org/installer | php &&\
 
 RUN sed -i 's/listen = 127.0.0.1:9000/listen = [::]:9000/p' /etc/php-fpm.d/www.conf &&\
 	sed -i '/listen.allowed_clients = 127.0.0.1/d' /etc/php-fpm.d/www.conf
-	
+
 RUN wget https://github.com/swoole/swoole-src/archive/v4.2.1.tar.gz &&\
 	tar -zxvf v4.2.1.tar.gz &&\
 	cd swoole-src-4.2.1 &&\

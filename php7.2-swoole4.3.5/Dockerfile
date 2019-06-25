@@ -39,14 +39,14 @@ RUN curl -sSL https://getcomposer.org/installer | php &&\
 RUN sed -i 's/listen = 127.0.0.1:9000/listen = [::]:9000/p' /etc/php-fpm.d/www.conf &&\
 	sed -i '/listen.allowed_clients = 127.0.0.1/d' /etc/php-fpm.d/www.conf
 	
-RUN wget https://github.com/swoole/swoole-src/archive/v4.3.5.tar.gz &&\
-	tar -zxvf v4.3.5.tar.gz &&\
-	cd swoole-src-4.3.5 &&\
+RUN wget https://github.com/swoole/swoole-src/archive/v4.2.1.tar.gz &&\
+	tar -zxvf v4.2.1.tar.gz &&\
+	cd swoole-src-4.2.1 &&\
 	phpize &&\
 	./configure &&\
 	make && make install &&\
 	sed -i '$a \\n[swoole]\nextension=swoole.so' /etc/php.ini &&\
-    cd ../ && rm -rf v4.3.5.tar.gz swoole-src-4.3.5
+    cd ../ && rm -rf v4.2.1.tar.gz swoole-src-4.2.1
 
 COPY docker-entrypoint.sh /usr/local/bin/
 

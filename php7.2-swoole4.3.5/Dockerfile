@@ -3,7 +3,7 @@ FROM daocloud.io/library/centos:7.2.1511
 RUN yum install -y epel-release &&\
 	rpm -ivh https://mirrors.tuna.tsinghua.edu.cn/remi/enterprise/remi-release-7.rpm
 
-RUN	yum install -y --enablerepo=remi --enablerepo=remi-php71 \
+RUN	yum install -y --enablerepo=remi --enablerepo=remi-php73 \
     php \
     php-opcache \
     php-devel \

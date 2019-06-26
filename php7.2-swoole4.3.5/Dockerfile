@@ -11,6 +11,7 @@ RUN	yum install -y --enablerepo=remi --enablerepo=remi-php73 \
     php-xml \
     php-zip \
     php-cli \
+    php-fpm \
     php-mcrypt \
     php-mysql \
     php-pdo \
@@ -18,6 +19,8 @@ RUN	yum install -y --enablerepo=remi --enablerepo=remi-php73 \
     php-gd \
     php-mysqld \
     php-bcmath \
+    php-redis \
+    php-process \
     openssh-server \
     wget \
     gcc \
@@ -33,6 +36,9 @@ RUN curl -sSL https://getcomposer.org/installer | php &&\
     mv composer.phar /usr/local/bin/composer &&\
     composer config -g repo.packagist composer https://packagist.phpcomposer.com &&\
     composer global require fxp/composer-asset-plugin v1.4.2 -vvv
+
+RUN sed -i 's/listen = 127.0.0.1:9000/listen = [::]:9000/p' /etc/php-fpm.d/www.conf &&\
+	sed -i '/listen.allowed_clients = 127.0.0.1/d' /etc/php-fpm.d/www.conf
 
 RUN wget https://github.com/swoole/swoole-src/archive/v4.3.5.tar.gz &&\
 	tar -zxvf v4.3.5.tar.gz &&\

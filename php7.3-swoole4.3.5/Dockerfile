@@ -51,6 +51,8 @@ RUN wget https://github.com/swoole/swoole-src/archive/v4.3.5.tar.gz &&\
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 RUN sed -i '/session    required   pam_loginuid.so/c\#session    required   pam_loginuid.so' /etc/pam.d/crond
 
 CMD ["docker-entrypoint.sh"]

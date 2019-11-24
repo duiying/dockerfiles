@@ -3,7 +3,7 @@ FROM centos:7.2.1511
 RUN yum install -y epel-release &&\
 	rpm -ivh https://mirrors.tuna.tsinghua.edu.cn/remi/enterprise/remi-release-7.rpm
 
-RUN yum install -y --enablerepo=remi --enablerepo=remi-php56 \
+RUN yum install -y --enablerepo=remi --enablerepo=remi-php72 \
     php \
 	php-opcache \
 	php-devel \
@@ -26,19 +26,41 @@ RUN yum install -y --enablerepo=remi --enablerepo=remi-php56 \
 	gcc-c++ \
 	make \
 	unzip \
+	vim \
 	cronie \
 	crontabs &&\
+    mkdir /run/php-fpm/ &&\
     yum clean all
 
 RUN curl -sSL https://getcomposer.org/installer | php &&\
     mv composer.phar /usr/local/bin/composer &&\
-    composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/ &&\
+    composer config -g repo.packagist composer https://packagist.phpcomposer.com &&\
     composer global require fxp/composer-asset-plugin v1.4.2 -vvv
 
 RUN sed -i 's/listen = 127.0.0.1:9000/listen = [::]:9000/p' /etc/php-fpm.d/www.conf &&\
 	sed -i '/listen.allowed_clients = 127.0.0.1/d' /etc/php-fpm.d/www.conf
+	
+RUN wget https://github.com/alanxz/rabbitmq-c/archive/v0.8.0.tar.gz &&\
+    tar -xvf v0.8.0.tar.gz &&\
+	cd rabbitmq-c-0.8.0 &&\
+	mkdir build && cd build &&\
+	yum -y install cmake &&\
+	cmake -DCMAKE_INSTALL_PREFIX=/usr/local/rabbitmq-c .. &&\
+	cmake --build . --target install &&\
+	ln -s /usr/local/rabbitmq-c/lib64 /usr/local/rabbitmq-c/lib &&\
+	cd ../../ && rm -rf v0.8.0.tar.gz
+	
+RUN wget https://pecl.php.net/get/amqp-1.9.3.tgz &&\
+    tar -xvf amqp-1.9.3.tgz &&\
+	cd amqp-1.9.3 &&\
+	phpize &&\
+	./configure --with-amqp --with-librabbitmq-dir=/usr/local/rabbitmq-c &&\
+	make && make install &&\
+	sed -i '$a \\n[rabbitmq]\nextension=amqp.so' /etc/php.ini &&\
+    cd ../ && rm -rf amqp-1.9.3.tgz amqp-1.9.3
 
 COPY docker-entrypoint.sh /usr/local/bin/
+
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 RUN sed -i '/session    required   pam_loginuid.so/c\#session    required   pam_loginuid.so' /etc/pam.d/crond

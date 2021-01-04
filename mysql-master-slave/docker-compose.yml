@@ -1,0 +1,25 @@
+version: '3'
+services:
+  mysql-master:
+    image: daocloud.io/library/mysql:5.7.4
+    container_name: mysql-master
+    environment:
+      - MYSQL_ROOT_PASSWORD=root*123^456
+    ports:
+      - "33061:3306"
+    volumes:
+      - "./mysql/master/my.cnf:/etc/my.cnf"
+      - "./mysql/master/data:/var/lib/mysql"
+    links:
+      - mysql-slave
+
+  mysql-slave:
+    image: daocloud.io/library/mysql:5.7.4
+    container_name: mysql-slave
+    environment:
+      - MYSQL_ROOT_PASSWORD=root*123^456
+    ports:
+      - "33062:3306"
+    volumes:
+      - "./mysql/slave/my.cnf:/etc/my.cnf"
+      - "./mysql/slave/data:/var/lib/mysql"

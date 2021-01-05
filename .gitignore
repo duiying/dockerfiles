@@ -1,1 +1,3 @@
 .idea
+mysql-master-slave/master/data/*
+mysql-master-slave/slave/data/*

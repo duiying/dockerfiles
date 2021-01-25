@@ -207,6 +207,23 @@ mysql> select * from t_passport_role;
 1 row in set (0.00 sec)
 ```
 
+同步状态关键指标：  
+
+**当前同步文件**  
+
+- Master：File（mysql-bin.000003）
+- Slave：Master_Log_File（mysql-bin.000003）  
+
+**当前同步 pos 点位**  
+
+- Master：Position（1175）
+- Slave：Read_Master_Log_Pos（1175） 
+
+**Seconds_Behind_Master**：值为 0 表示健康，值长时间非 0 则同步存在压力或网络存在延迟。
+
+
+
+
 
 
 

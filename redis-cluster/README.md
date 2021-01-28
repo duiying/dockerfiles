@@ -1,4 +1,4 @@
-# 搭建 redis-cluster 三主三从以及集群的扩容缩容
+# 搭建 Redis Cluster 三主三从以及集群的扩容缩容
 
 ### 目录
 

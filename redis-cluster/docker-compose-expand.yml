@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  redis7007:
+    image: 'daocloud.io/library/redis:5.0.9'
+    container_name: redis7007
+    command:
+      ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./7007/conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./7007/data:/data
+    ports:
+      - "7007:7007"     # 服务端口
+      - "17007:17007"   # 集群端口
+    environment:
+      # 设置时区为上海，否则时间会有问题
+      - TZ=Asia/Shanghai
+
+  redis7008:
+    image: 'daocloud.io/library/redis:5.0.9'
+    container_name: redis7008
+    command:
+      ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./7008/conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./7008/data:/data
+    ports:
+      - "7008:7008"     # 服务端口
+      - "17008:17008"   # 集群端口
+    environment:
+      # 设置时区为上海，否则时间会有问题
+      - TZ=Asia/Shanghai

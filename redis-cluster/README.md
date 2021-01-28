@@ -1,5 +1,7 @@
 # 搭建 redis-cluster 三主三从以及集群的扩容缩容
 
+### 创建三主三从集群
+
 首先，容器编排，启动 6 个 redis 容器。  
 
 ```sh
@@ -170,6 +172,181 @@ cluster_stats_messages_received:4194
       2) (integer) 7004
       3) "fe64b3a2bacbf851c74cbddfbcbdbaebecbc1c69"
 ```
+
+上面的六个节点中，7001、7006 为一组主从，7002、7004 为一组主从，7003、7005 为一组主从，这是自动生成的主从关系，**如果我们想手动指定节点的主从关系应该怎样做？**  
+
+### 手动指定主从
+
+我们先把**环境恢复**到刚执行完 docker-compose up -d 时的环境（1、删除 6 个目录下的 data 目录；2、docker-compose down；3、docker-compose up -d；）。  
+
+**1、先创建不含 Slave 的集群**  
+
+```sh
+docker run --rm -it goodsmileduck/redis-cli redis-cli -a redis_cluster_pass --cluster-replicas 0 --cluster create 172.18.4.77:7001 172.18.4.77:7002 172.18.4.77:7003 
+```  
+
+执行结果如下：  
+
+```sh
+Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.
+>>> Performing hash slots allocation on 3 nodes...
+Master[0] -> Slots 0 - 5460
+Master[1] -> Slots 5461 - 10922
+Master[2] -> Slots 10923 - 16383
+M: 6153f122ee1d4bebbd1d2911a253f5fd14432b88 172.18.4.77:7001
+   slots:[0-5460] (5461 slots) master
+M: d511c1cf25e40d82db8b1ff303ab4691d96e8621 172.18.4.77:7002
+   slots:[5461-10922] (5462 slots) master
+M: 9c3ce34bdec25c6fbad23200fe013d531ef27e4c 172.18.4.77:7003
+   slots:[10923-16383] (5461 slots) master
+Can I set the above configuration? (type 'yes' to accept): yes
+>>> Nodes configuration updated
+>>> Assign a different config epoch to each node
+>>> Sending CLUSTER MEET messages to join the cluster
+Waiting for the cluster to join
+...
+>>> Performing Cluster Check (using node 172.18.4.77:7001)
+M: 6153f122ee1d4bebbd1d2911a253f5fd14432b88 172.18.4.77:7001
+   slots:[0-5460] (5461 slots) master
+M: 9c3ce34bdec25c6fbad23200fe013d531ef27e4c 172.21.0.1:7003
+   slots:[10923-16383] (5461 slots) master
+M: d511c1cf25e40d82db8b1ff303ab4691d96e8621 172.21.0.1:7002
+   slots:[5461-10922] (5462 slots) master
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+```
+
+**2、手动添加 Slave**  
+
+```sh
+# 设置 Slave 为 7004 节点，对应的 Master 为 7001 节点
+docker run --rm -it goodsmileduck/redis-cli redis-cli -a redis_cluster_pass --cluster add-node 172.18.4.77:7004 172.18.4.77:7001 --cluster-slave --cluster-master-id 6153f122ee1d4bebbd1d2911a253f5fd14432b88
+# 设置 Slave 为 7005 节点，对应的 Master 为 7002 节点
+docker run --rm -it goodsmileduck/redis-cli redis-cli -a redis_cluster_pass --cluster add-node 172.18.4.77:7005 172.18.4.77:7002 --cluster-slave --cluster-master-id d511c1cf25e40d82db8b1ff303ab4691d96e8621
+# 设置 Slave 为 7006 节点，对应的 Master 为 7003 节点
+docker run --rm -it goodsmileduck/redis-cli redis-cli -a redis_cluster_pass --cluster add-node 172.18.4.77:7006 172.18.4.77:7003 --cluster-slave --cluster-master-id 9c3ce34bdec25c6fbad23200fe013d531ef27e4c
+```
+
+三条命令的执行结果如下：  
+
+```sh
+# 第一条命令执行结果
+Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.
+>>> Adding node 172.18.4.77:7004 to cluster 172.18.4.77:7001
+>>> Performing Cluster Check (using node 172.18.4.77:7001)
+M: 6153f122ee1d4bebbd1d2911a253f5fd14432b88 172.18.4.77:7001
+   slots:[0-5460] (5461 slots) master
+M: 9c3ce34bdec25c6fbad23200fe013d531ef27e4c 172.21.0.1:7003
+   slots:[10923-16383] (5461 slots) master
+M: d511c1cf25e40d82db8b1ff303ab4691d96e8621 172.21.0.1:7002
+   slots:[5461-10922] (5462 slots) master
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+>>> Send CLUSTER MEET to node 172.18.4.77:7004 to make it join the cluster.
+Waiting for the cluster to join
+
+>>> Configure node as replica of 172.18.4.77:7001.
+[OK] New node added correctly.
+
+# 第二条命令执行结果
+Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.
+>>> Adding node 172.18.4.77:7005 to cluster 172.18.4.77:7002
+>>> Performing Cluster Check (using node 172.18.4.77:7002)
+M: d511c1cf25e40d82db8b1ff303ab4691d96e8621 172.18.4.77:7002
+   slots:[5461-10922] (5462 slots) master
+S: 8c29b33eacf918fb3227734884962c78d21cbc9c 172.21.0.1:7004
+   slots: (0 slots) slave
+   replicates 6153f122ee1d4bebbd1d2911a253f5fd14432b88
+M: 9c3ce34bdec25c6fbad23200fe013d531ef27e4c 172.21.0.1:7003
+   slots:[10923-16383] (5461 slots) master
+M: 6153f122ee1d4bebbd1d2911a253f5fd14432b88 172.21.0.1:7001
+   slots:[0-5460] (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+>>> Send CLUSTER MEET to node 172.18.4.77:7005 to make it join the cluster.
+Waiting for the cluster to join
+
+>>> Configure node as replica of 172.18.4.77:7002.
+[OK] New node added correctly.
+
+# 第三条命令执行结果
+Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.
+>>> Adding node 172.18.4.77:7006 to cluster 172.18.4.77:7003
+>>> Performing Cluster Check (using node 172.18.4.77:7003)
+M: 9c3ce34bdec25c6fbad23200fe013d531ef27e4c 172.18.4.77:7003
+   slots:[10923-16383] (5461 slots) master
+S: 2366c99562a1eb9503657e17f15acf65a1b7967d 172.21.0.1:7005
+   slots: (0 slots) slave
+   replicates d511c1cf25e40d82db8b1ff303ab4691d96e8621
+M: 6153f122ee1d4bebbd1d2911a253f5fd14432b88 172.21.0.1:7001
+   slots:[0-5460] (5461 slots) master
+   1 additional replica(s)
+M: d511c1cf25e40d82db8b1ff303ab4691d96e8621 172.21.0.1:7002
+   slots:[5461-10922] (5462 slots) master
+   1 additional replica(s)
+S: 8c29b33eacf918fb3227734884962c78d21cbc9c 172.21.0.1:7004
+   slots: (0 slots) slave
+   replicates 6153f122ee1d4bebbd1d2911a253f5fd14432b88
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+>>> Send CLUSTER MEET to node 172.18.4.77:7006 to make it join the cluster.
+Waiting for the cluster to join
+
+>>> Configure node as replica of 172.18.4.77:7003.
+[OK] New node added correctly.
+```
+
+**3、查看集群分片情况（cluster slots）**  
+
+```sh
+$ docker run --rm -it goodsmileduck/redis-cli redis-cli -c -h 172.18.4.77 -p 7001 -a redis_cluster_pass
+Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.
+172.18.4.77:7001> cluster slots
+1) 1) (integer) 0
+   2) (integer) 5460
+   3) 1) "172.21.0.4"
+      2) (integer) 7001
+      3) "6153f122ee1d4bebbd1d2911a253f5fd14432b88"
+   4) 1) "172.21.0.1"
+      2) (integer) 7004
+      3) "8c29b33eacf918fb3227734884962c78d21cbc9c"
+2) 1) (integer) 10923
+   2) (integer) 16383
+   3) 1) "172.21.0.1"
+      2) (integer) 7003
+      3) "9c3ce34bdec25c6fbad23200fe013d531ef27e4c"
+   4) 1) "172.21.0.1"
+      2) (integer) 7006
+      3) "1403bce5e9fac62d3dd144de664af0aea97ef4b5"
+3) 1) (integer) 5461
+   2) (integer) 10922
+   3) 1) "172.21.0.1"
+      2) (integer) 7002
+      3) "d511c1cf25e40d82db8b1ff303ab4691d96e8621"
+   4) 1) "172.21.0.1"
+      2) (integer) 7005
+      3) "2366c99562a1eb9503657e17f15acf65a1b7967d"
+172.18.4.77:7001> set key1 val1
+-> Redirected to slot [9189] located at 172.21.0.1:7002
+OK
+```
+
+可以看到，我们成功地手动设置了节点之间的主从关系。  
+
+### 集群的扩容
+
+
+
+### 集群的缩容
 
 
 

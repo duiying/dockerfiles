@@ -1,5 +1,7 @@
 # 搭建 Redis Cluster 三主三从以及集群的扩容缩容
 
+本文以 Redis 5 版本为例来搭建 Redis Cluster。（Redis 5.0 以后的版本集群搭建，不需要借助 ruby）
+
 ### 目录
 
 - [创建三主三从集群](#创建三主三从集群)
@@ -422,6 +424,8 @@ d511c1cf25e40d82db8b1ff303ab4691d96e8621 172.21.0.6:7002@17002 myself,master - 0
 ```sh
 docker run --rm -it goodsmileduck/redis-cli redis-cli --cluster add-node 172.21.0.1:7008 172.21.0.1:7001 --cluster-slave --cluster-master-id 4c32c47bd248f86415a86512186a3261be78bb3a -a redis_cluster_pass
 ```
+
+**注意**：在线添加 Slave 时，需要 bgsave 整个 Master 数据，并传递到 Slave，再由 Slave 加载 rdb 文件到内存，rdb 生成和传输的过程中消耗 Master 大量内存和网络 IO，以此不建议单实例内存过大，**线上小心操作**。  
 
 查看集群节点信息：  
 

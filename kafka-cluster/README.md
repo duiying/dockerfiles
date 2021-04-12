@@ -41,5 +41,29 @@ bash-4.4# opt/kafka_2.13-2.7.0/bin/kafka-console-consumer.sh --bootstrap-server 
 hello
 ```
 
+6、查看 Kafka Topic 列表，使用 `--list` 参数。  
+
+> 可以使用任意 Kafka 节点、ZK 节点。  
+
+```sh
+bash-4.4# /opt/kafka_2.13-2.7.0/bin/kafka-topics.sh --list --zookeeper zoo1:2181
+__consumer_offsets
+test001
+```
+
+7、查看 Kafka 指定 Topic 详情，使用 `--topic` 与 `--describe` 参数。   
+
+```sh
+bash-4.4# /opt/kafka_2.13-2.7.0/bin/kafka-topics.sh --zookeeper zoo1:2181 --topic test001 --describe
+Topic: test001	PartitionCount: 5	ReplicationFactor: 3	Configs:
+	Topic: test001	Partition: 0	Leader: 1003	Replicas: 1003,1001,1002	Isr: 1003,1001,1002
+	Topic: test001	Partition: 1	Leader: 1001	Replicas: 1001,1002,1003	Isr: 1001,1002,1003
+	Topic: test001	Partition: 2	Leader: 1002	Replicas: 1002,1003,1001	Isr: 1002,1003,1001
+	Topic: test001	Partition: 3	Leader: 1003	Replicas: 1003,1002,1001	Isr: 1003,1002,1001
+	Topic: test001	Partition: 4	Leader: 1001	Replicas: 1001,1003,1002	Isr: 1001,1003,1002
+```
+
+
+
 
 

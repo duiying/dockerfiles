@@ -34,8 +34,7 @@ RUN	yum install -y --enablerepo=remi --enablerepo=remi-php74 \
 
 RUN curl -sSL https://getcomposer.org/installer | php &&\
     mv composer.phar /usr/local/bin/composer &&\
-    composer config -g repo.packagist composer https://packagist.phpcomposer.com &&\
-    composer global require fxp/composer-asset-plugin v1.4.2 -vvv
+    composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
 
 RUN sed -i 's/listen = 127.0.0.1:9000/listen = [::]:9000/p' /etc/php-fpm.d/www.conf &&\
 	sed -i '/listen.allowed_clients = 127.0.0.1/d' /etc/php-fpm.d/www.conf

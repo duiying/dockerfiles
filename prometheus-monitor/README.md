@@ -20,7 +20,7 @@ Prometheus + Grafana 监控的原理：
 
 配置 Grafana：  
 
-- create datasource：name 自定义，type 选 prometheus，url 填写 http://localhost:9090，保存并测试
+- create datasource：name 自定义，type 选 prometheus，url 填写 http://localhost:9090 ，保存并测试
 - import dashboard：MySQL：11323 机器：8919 Redis：2751
 
 > 当监控数据为空时的排查思路：检查对应 exporter 暴露的 metrics 接口是否有效！
